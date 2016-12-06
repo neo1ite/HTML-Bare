@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
 
 use strict;
-
+use warnings qw(FATAL all);
+use lib 'lib';
 use Test::More qw(no_plan);
 
 use_ok( 'HTML::Bare', qw/htmlin/ );
 
-my ( $ob, $root ) = HTML::Bare->simple( text => "<node att='2'><sub/></node>" ); 
+my ( $ob, $root ) = HTML::Bare->simple( text => "<node att='2'><sub/></node>" );
 
 ok( $root, "Got some root" );
 my $attval = $root->{'node'}{'att'};

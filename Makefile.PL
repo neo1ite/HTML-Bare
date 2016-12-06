@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 use ExtUtils::MakeMaker;
 require 5.006;
-my @basics = ( 
+my @basics = (
     AUTHOR       => 'David Helkowski <cpan@codechild.com>',
     ABSTRACT     => 'A minimal HTML parser / schema checker / pretty-printer using C internally.',
     NAME         => 'HTML::Bare',
-    VERSION_FROM => 'Bare.pm',
+    VERSION_FROM => 'lib/HTML/Bare.pm',
     XSOPT        => '-nolinenumbers', # line number defines were causing issues on some platforms
     BUILD_REQUIRES => {
         'Data::Dumper' => 0,
@@ -96,7 +96,7 @@ sub getcc {
   foreach my $dir ( @path ) {
     return 'gcc' if( -e "$dir/gcc" || -e "$dir/gcc.exe" ); # prefer gcc
     return 'cc'  if( -e "$dir/cc"  || -e "$dir/cc.exe"  );
-  }               
+  }
   return 0;
 }
 
@@ -119,4 +119,3 @@ sub const_loadlibs {
   }
   return $res;
 }
-

@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 
 use strict;
-use warnings;
+use warnings qw(FATAL all);
+use lib 'lib';
 
 # NB we have use utf8 here, but the source should be 7bit clean
 # however I need the utf8::is_utf8 and utf8::valid names which

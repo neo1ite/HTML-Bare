@@ -1,4 +1,5 @@
-Bare.pm
+lib/HTML/Bare.pm
+lib/HTML/Bare/Object.pm
 Bare.xs
 Changes
 makebench.PL

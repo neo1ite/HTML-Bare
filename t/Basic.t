@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 
 use strict;
-
+use warnings qw(FATAL all);
+use lib 'lib';
 use Test::More qw(no_plan);
 
 use_ok( 'HTML::Bare', qw/htmlin/ );
@@ -29,7 +30,7 @@ is( $simple->{node}{att}, '12', 'simple - reading of " surrounded attribute valu
 ( $xml, $root, $simple ) = reparse( "<xml><node att>val</node></xml>" );
 is( $root->{xml}{node}{att}{value}, '1', "reading of value of standalone attribute" );
 is( $simple->{node}{att}, '1', "simple - reading of value of standalone attribute" );
-    
+
 ( $xml, $root, $simple ) = reparse( "<xml><node><![CDATA[<cval>]]></node></xml>" );
 is( $root->{xml}->{node}->{value}, '<cval>', 'reading of cdata' );
 is( $simple->{node}, '<cval>', 'simple - reading of cdata' );

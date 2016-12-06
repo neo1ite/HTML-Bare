@@ -1,0 +1,10 @@
+/Makefile
+/pm_to_blib
+/blib
+/MYMETA.json
+/MYMETA.yml
+/Bare.bs
+/Bare.c
+/Bare.o
+/Bare.def
+/parser.o
