@@ -23,11 +23,13 @@ int dh_memcmp(char *a,char *b,int n) {
 
 int dh_memcmp2(char *a,int na,char *b,int nb) {
   int c = 0;
-  if( na != nb ) return 0;
-  while( c < na ) {
-    if( *a != *b ) return c+1;
+  if (na != nb) return 0;
+
+  while (c < na) {
+    if( *a != *b ) return c + 1;
     a++; b++; c++;
   }
+
   return 0;
 }
 
@@ -38,6 +40,7 @@ struct nodec *new_nodecp( struct nodec *newparent ) {
   memset( (char *) self, 0, size );
   self->parent      = newparent;
   self->pos = ++pos;
+
   return self;
 }
 
@@ -45,24 +48,30 @@ struct nodec *new_nodec() {
   int size = sizeof( struct nodec );
   struct nodec *self = (struct nodec *) malloc( size );
   memset( (char *) self, 0, size );
+
   return self;
 }
 
 struct namec *new_namec( struct namec *last, char *name, int namelen ) {
   int size = sizeof( struct namec );
   struct namec *self = (struct namec *) malloc( size );
+
   //memset( (char *) self, 0, size );
-  self->prev = last;
-  self->name = name;
+  self->prev    = last;
+  self->name    = name;
   self->namelen = namelen;
+
   if( last ) self->depth = last->depth + 1;
   else self->name = NULL;
+
   return self;
 }
 
 struct namec *del_namec( struct namec *name ) {
   struct namec *prev = name->prev;
+
   free( name );
+
   return prev;
 }
 
@@ -71,19 +80,24 @@ void del_nodec( struct nodec *node ) {
   struct attc *curatt;
   struct nodec *next;
   struct attc *nexta;
+
   curnode = node->firstchild;
+
   while( curnode ) {
     next = curnode->next;
     del_nodec( curnode );
     if( !next ) break;
     curnode = next;
   }
+
   curatt = node->firstatt;
+
   while( curatt ) {
     nexta = curatt->next;
     free( curatt );
     curatt = nexta;
   }
+
   free( node );
 }
 
@@ -125,9 +139,9 @@ struct attc* new_attc( struct nodec *newparent ) {
 int parserc_parse( struct parserc *self, char *htmlin ) {
     // Variables that represent current 'state'
     struct nodec *root    = NULL;
-    char  *tagname        = NULL; int    tagname_len    = 0;
-    char  *attname        = NULL; int    attname_len    = 0;
-    char  *attval         = NULL; int    attval_len     = 0;
+    char  *tagname        = NULL; int tagname_len = 0;
+    char  *attname        = NULL; int attname_len = 0;
+    char  *attval         = NULL; int attval_len  = 0;
     int    att_has_val    = 0;
     struct nodec *curnode = NULL;
     struct attc  *curatt  = NULL;
@@ -135,83 +149,89 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
     self->rootpos = htmlin;
     // HTML stuff
     struct namec *curname = new_namec( NULL, "", 0 );
-    
+
     // Variables used temporarily during processing
     struct nodec *temp;
     char   *cpos          = &htmlin[0];
     int    res            = 0;
     int    dent;
     register int let;
-    
-    if( self->last_state ) {
+
+    if (self->last_state) {
       #ifdef DEBUG
       printf( "Resuming parse in state %i\n", self->last_state );
       #endif
       self->err = 0;
-      root = self->rootnode;
-      curnode = self->curnode;
-      curatt = self->curatt;
-      tagname = self->tagname; tagname_len = self->tagname_len;
-      attname = self->attname; attname_len = self->attname_len;
-      attval = self->attval; attval_len = self->attval_len;
+
+      root        = self->rootnode;
+      curnode     = self->curnode;
+      curatt      = self->curatt;
+      tagname     = self->tagname; tagname_len = self->tagname_len;
+      attname     = self->attname; attname_len = self->attname_len;
+      attval      = self->attval;  attval_len  = self->attval_len;
       att_has_val = self->att_has_val;
+
       switch( self->last_state ) {
-        case ST_val_1: goto val_1;
-        case ST_val_x: goto val_x;
-        case ST_comment_1dash: goto comment_1dash;
-        case ST_comment_2dash: goto comment_2dash;
-        case ST_comment: goto comment;
-        case ST_comment_x: goto comment_x;
-        case ST_pi: goto pi;
-        case ST_bang: goto bang;
-        case ST_cdata: goto cdata;
-        case ST_name_1: goto name_1;
-        case ST_name_x: goto name_x;
-        case ST_name_gap: goto name_gap;
-        case ST_att_name1: goto att_name1;
-        case ST_att_space: goto att_space;
-        case ST_att_name: goto att_name;
-        case ST_att_nameqs: goto att_nameqs;
+        case ST_val_1:          goto val_1;
+        case ST_val_x:          goto val_x;
+        case ST_comment_1dash:  goto comment_1dash;
+        case ST_comment_2dash:  goto comment_2dash;
+        case ST_comment:        goto comment;
+        case ST_comment_x:      goto comment_x;
+        case ST_pi:             goto pi;
+        case ST_bang:           goto bang;
+        case ST_cdata:          goto cdata;
+        case ST_name_1:         goto name_1;
+        case ST_name_x:         goto name_x;
+        case ST_name_gap:       goto name_gap;
+        case ST_att_name1:      goto att_name1;
+        case ST_att_space:      goto att_space;
+        case ST_att_name:       goto att_name;
+        case ST_att_nameqs:     goto att_nameqs;
         case ST_att_nameqsdone: goto att_nameqsdone;
-        case ST_att_eq1: goto att_eq1;
-        case ST_att_eqx: goto att_eqx;
-        case ST_att_quot: goto att_quot;
-        case ST_att_quots: goto att_quots;
-        case ST_att_tick: goto att_tick;
-        case ST_ename_1: goto ename_1;
-        case ST_ename_x: goto ename_x;
+        case ST_att_eq1:        goto att_eq1;
+        case ST_att_eqx:        goto att_eqx;
+        case ST_att_quot:       goto att_quot;
+        case ST_att_quots:      goto att_quots;
+        case ST_att_tick:       goto att_tick;
+        case ST_ename_1:        goto ename_1;
+        case ST_ename_x:        goto ename_x;
       }
-    }
-    else {
+    } else {
       self->err = 0;
       curnode = root = self->rootnode = new_nodec();
     }
-    
+
     #ifdef DEBUG
     printf("Entry to C Parser\n");
     #endif
-    
+
     val_1:
       #ifdef DEBUG
-      printf("val_1: %c\n", *cpos);
+      printf("val_1: %c %d\n", *cpos, *cpos);
       #endif
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_val_1; goto done;
         case '<': goto val_x;
       }
+
       if( !curnode->numvals ) {
         curnode->value = cpos;
         curnode->vallen = 1;
       }
+
       curnode->numvals++;
       cpos++;
-      
+
     val_x:
       #ifdef DEBUG
-      printf("val_x: %c\n", *cpos);
+      printf("val_x: %c %d\n", *cpos, *cpos);
       #endif
+
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_val_x; goto done;
         case '<':
@@ -253,14 +273,14 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       if( curnode->numvals == 1 ) curnode->vallen++;
       cpos++;
       goto val_x;
-      
+
     comment_1dash:
       cpos++;
       let = *cpos;
       if( let == '-' ) goto comment_2dash;
       if( !let ) { last_state = ST_comment_1dash; goto done; }
       goto comment_x;
-      
+
     comment_2dash:
       cpos++;
       let = *cpos;
@@ -270,7 +290,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       }
       if( !let ) { last_state = ST_comment_2dash; goto done; }
       goto comment_x;
-      
+
     comment:
       let = *cpos;
       switch( let ) {
@@ -283,7 +303,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       }
       curnode->numcoms++;
       cpos++;
-    
+
     comment_x:
       let = *cpos;
       switch( let ) {
@@ -293,7 +313,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       if( curnode->numcoms == 1 ) curnode->comlen++;
       cpos++;
       goto comment_x;
-      
+
     pi:
       let = *cpos;
       if( let == '?' && *(cpos+1) == '>' ) {
@@ -313,7 +333,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       if( !let ) { last_state = ST_bang; goto done; }
       cpos++;
       goto bang;
-    
+
     cdata:
       let = *cpos;
       if( !let ) { last_state = ST_cdata; goto done; }
@@ -329,14 +349,14 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       if( curnode->numvals == 1 ) curnode->vallen++;
       cpos++;
       goto cdata;
-      
+
     name_1:
       #ifdef DEBUG
       printf("name_1: %c\n", *cpos);
       #endif
       let = *cpos;
       switch( let ) {
-        case 0: last_state = ST_name_1; goto done;        
+        case 0: last_state = ST_name_1; goto done;
         case ' ':
         case 0x0d:
         case 0x0a:
@@ -351,7 +371,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       tagname_len   = 1;
       cpos++;
       goto name_x;
-      
+
     name_x:
       #ifdef DEBUG
       printf("name_x: %c\n", *cpos);
@@ -379,11 +399,11 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos+=2;
           goto val_1;
       }
-      
+
       tagname_len++;
       cpos++;
       goto name_x;
-          
+
     name_gap:
       #ifdef DEBUG
       printf("name_gap: %c\n", *cpos);
@@ -410,7 +430,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos++;
           goto name_gap;//actually goto error
       }
-        
+
     att_name1:
       #ifdef DEBUG
       printf("attname1: %c\n", *cpos);
@@ -429,7 +449,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       attname_len = 1;
       cpos++;
       goto att_name;
-      
+
     att_space:
       let = *cpos;
       switch( let ) {
@@ -445,7 +465,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           goto att_eq1;
       }
       // we have another attribute name, so continue
-      
+
     att_name:
       #ifdef DEBUG
       printf("attname: %c\n", *cpos);
@@ -457,7 +477,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           curatt = nodec_addattr( curnode, attname, attname_len );
           if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
           attname_len            = 0;
-          
+
           curnode->z = cpos+1-htmlin;
           curname = del_namec( curname );
           curnode = curnode->parent;
@@ -486,15 +506,15 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos++;
           goto att_eq1;
       }
-      
+
       if( !attname_len ) attname = cpos;
       attname_len++;
       cpos++;
       goto att_name;
-      
+
     att_nameqs:
       #ifdef DEBUG
-      printf("nameqs: %c\n", *cpos);
+      printf("att_nameqs: %c\n", *cpos);
       #endif
       let = *cpos;
       switch( let ) {
@@ -506,7 +526,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       attname_len++;
       cpos++;
       goto att_nameqs;
-      
+
     att_nameqsdone:
       #ifdef DEBUG
       printf("nameqsdone: %c\n", *cpos);
@@ -520,10 +540,14 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           attname_len = 0;
           cpos++;
           goto att_eq1;
+        default: goto done;
       }
       goto att_nameqsdone;
-      
+
     att_eq1:
+      #ifdef DEBUG
+      printf("att_eq1: %c\n", *cpos);
+      #endif
       let = *cpos;
       switch( let ) {
         case 0: last_state = ST_att_eq1; goto done;
@@ -542,12 +566,12 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         case '`':  cpos++; goto att_tick;
         case '>':  cpos++; goto val_1;
         case ' ':  cpos++; goto att_eq1;
-      }  
+      }
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto att_eqx;
-      
+
     att_eqx:
       let = *cpos;
       switch( let ) {
@@ -578,15 +602,18 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos++;
           goto name_gap;
       }
-      
+
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto att_eqx;
-      
+
     att_quot:
+      #ifdef DEBUG
+      printf("att_quot: %c\n", *cpos);
+      #endif
       let = *cpos;
-      
+
       if( let == '"' ) {
         if( attval_len ) {
           curatt->value = attval;
@@ -601,10 +628,10 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       attval_len++;
       cpos++;
       goto att_quot;
-      
+
     att_quots:
       let = *cpos;
-      
+
       if( let == 0x27 ) { // '
         if( attval_len ) {
           curatt->value = attval;
@@ -615,15 +642,15 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         goto name_gap;
       }
       if( !let ) { last_state = ST_att_quots; goto done; }
-      
+
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto att_quots;
-      
+
     att_tick:
       let = *cpos;
-      
+
       if( let == '`' ) {
         if( attval_len ) {
           curatt->value = attval;
@@ -634,12 +661,12 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         goto name_gap;
       }
       if( !let ) { last_state = ST_att_tick; goto done; }
-      
+
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto att_tick;
-      
+
     ename_1: // first character of a closing node "</Close>" ( the C )
       let = *cpos;
       if( let == '>' ) {
@@ -657,7 +684,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       tagname_len   = 1;
       cpos++;
       // continue
-      
+
     ename_x: // ending name
       let = *cpos;
       if( let == '>' ) {
@@ -693,7 +720,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         if( !curnode ) goto done;
         tagname_len++;
         cpos++;
-        
+
         goto val_1;
       }
       if( !let ) { last_state = ST_ename_x; goto done; }
@@ -707,7 +734,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       #ifdef DEBUG
       printf("done\n", *cpos);
       #endif
-      
+
       // store the current state of the parser
       self->last_state = last_state;
       self->curnode = curnode;
@@ -716,7 +743,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       self->attname = attname; self->attname_len = attname_len;
       self->attval  = attval;  self->attval_len  = attval_len;
       self->att_has_val = att_has_val;
-      
+
       // clean up name stack
       while( curname ) {
         curname = del_namec( curname );
@@ -724,7 +751,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         printf("cleaning name stack\n");
         #endif
       }
-      
+
       #ifdef DEBUG
       printf("returning\n", *cpos);
       #endif
@@ -742,14 +769,14 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
     struct attc  *curatt  = NULL;
     int    last_state     = 0;
     self->rootpos = htmlin;
-    
+
     // Variables used temporarily during processing
     struct nodec *temp;
     char   *cpos          = &htmlin[0];
     int    res            = 0;
     int    dent;
     register int let;
-    
+
     if( self->last_state ) {
       return -1; // unsafe doesn't support this
     }
@@ -757,11 +784,11 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       self->err = 0;
       curnode = root = self->rootnode = new_nodec();
     }
-    
+
     #ifdef DEBUG
     printf("Entry to C Parser\n");
     #endif
-    
+
     u_val_1: // content
       #ifdef DEBUG
       printf("val_1: %c\n", *cpos);
@@ -776,7 +803,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       }
       curnode->numvals++;
       cpos++;
-      
+
     u_val_x: // content
       #ifdef DEBUG
       printf("val_x: %c\n", *cpos);
@@ -795,7 +822,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
             curnode->type = 1;
             goto u_cdata;
           }
-          
+
           tagname_len = 0; // for safety
           cpos++;
           goto u_name_1;
@@ -803,7 +830,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       if( curnode->numvals == 1 ) curnode->vallen++;
       cpos++;
       goto u_val_x;
-    
+
     u_cdata:
       if( *cpos == ']' && *(cpos+1) == ']' && *(cpos+2) == '>' ) {
         cpos += 3;
@@ -817,7 +844,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       if( curnode->numvals == 1 ) curnode->vallen++;
       cpos++;
       goto u_cdata;
-      
+
     u_name_1: // node name
       #ifdef DEBUG
       printf("name_1: %c\n", *cpos);
@@ -832,7 +859,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       tagname_len   = 1;
       cpos++;
       goto u_name_x;
-      
+
     u_name_x: // node name
       #ifdef DEBUG
       printf("name_x: %c\n", *cpos);
@@ -853,11 +880,11 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           cpos+=2;
           goto u_val_1;
       }
-      
+
       tagname_len++;
       cpos++;
       goto u_name_x;
-          
+
     u_name_gap: // node name gap
       switch( *cpos ) {
         case ' ':
@@ -870,7 +897,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           cpos += 2; // am assuming next char is >
           goto u_val_1;
       }
-        
+
     u_att_name1:
       #ifdef DEBUG
       printf("attname1: %c\n", *cpos);
@@ -880,7 +907,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       attname_len = 1;
       cpos++;
       goto u_att_name;
-      
+
     u_att_space:
       if( *cpos == '=' ) {
           att_has_val = 1;
@@ -888,7 +915,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           goto u_att_eq1;
       }
       // we have another attribute name, so continue
-      
+
     u_att_name:
       #ifdef DEBUG
       printf("attname: %c\n", *cpos);
@@ -899,7 +926,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           curatt = nodec_addattr( curnode, attname, attname_len );
           if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
           attname_len = 0;
-          
+
           curnode = curnode->parent;
           if( !curnode ) goto u_done;
           cpos += 2;
@@ -926,12 +953,12 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           cpos++;
           goto u_att_eq1;
       }
-      
+
       if( !attname_len ) attname = cpos;
       attname_len++;
       cpos++;
       goto u_att_name;
-      
+
     u_att_eq1:
       switch( *cpos ) {
         case '/': // self closing
@@ -946,12 +973,12 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
         case 0x27: cpos++; goto u_att_quots; //'
         case '>':  cpos++; goto u_val_1;
         case ' ':  cpos++; goto u_att_eq1;
-      }  
+      }
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto u_att_eqx;
-      
+
     u_att_eqx:
       switch( *cpos ) {
         case '/': // self closing
@@ -978,12 +1005,12 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           cpos++;
           goto u_name_gap;
       }
-      
+
       if( !attval_len ) attval = cpos;
       attval_len++;
       cpos++;
       goto u_att_eqx;
-      
+
     u_att_quot:
       if( *cpos == '"' ) {
         if( attval_len ) {
@@ -998,7 +1025,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       attval_len++;
       cpos++;
       goto u_att_quot;
-      
+
     u_att_quots:
       if( *cpos == 0x27 ) { // '
         if( attval_len ) {
@@ -1013,13 +1040,13 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       attval_len++;
       cpos++;
       goto u_att_quots;
-      
+
     u_ename_1:
       tagname       = cpos;
       tagname_len   = 1;
       cpos++;
       // continue
-      
+
     u_ename_x: // ending name
       let = *cpos;
       if( let == '>' ) {
@@ -1028,18 +1055,18 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
         if( !curnode ) goto u_done;
         tagname_len++;
         cpos++;
-        
+
         goto u_val_1;
       }
       tagname_len++;
       cpos++;
       goto u_ename_x;
-    
+
     u_done:
       #ifdef DEBUG
       printf("done\n", *cpos);
       #endif
-      
+
       // store the current state of the parser
       self->last_state = last_state;
       self->curnode = curnode;
@@ -1048,7 +1075,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       self->attname = attname; self->attname_len = attname_len;
       self->attval  = attval;  self->attval_len  = attval_len;
       self->att_has_val = att_has_val;
-      
+
       #ifdef DEBUG
       printf("returning\n", *cpos);
       #endif
@@ -1082,7 +1109,7 @@ struct attc *nodec_addattr( struct nodec *self, char *newname, int newnamelen ) 
   struct attc *newatt = new_attc( self );
   newatt->name    = newname;
   newatt->namelen = newnamelen;
-  
+
   if( !self->numatt ) {
     self->firstatt = newatt;
     self->lastatt  = newatt;

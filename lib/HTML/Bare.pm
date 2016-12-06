@@ -1120,7 +1120,7 @@ sub nav {
 
       last if (!scalar(@$curnodes));
     }
-    
+
     return $curnodes;
 }
 
