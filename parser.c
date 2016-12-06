@@ -475,10 +475,10 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
         case 0: last_state = ST_att_name; goto done;
         case '/': // self closing     !! /> is assumed !!
           curatt = nodec_addattr( curnode, attname, attname_len );
-          if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
+          if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len            = 0;
 
-          curnode->z = cpos+1-htmlin;
+          curnode->z = cpos + 1 - htmlin;
           curname = del_namec( curname );
           curnode = curnode->parent;
           if( !curnode ) goto done;
@@ -495,7 +495,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           goto att_space;
         case '>':
           curatt = nodec_addattr( curnode, attname, attname_len );
-          if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
+          if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len = 0;
           cpos++;
           goto val_1;
@@ -924,7 +924,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
       switch( let ) {
         case '/': // self closing     !! /> is assumed !!
           curatt = nodec_addattr( curnode, attname, attname_len );
-          if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
+          if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len = 0;
 
           curnode = curnode->parent;
@@ -942,7 +942,7 @@ int parserc_parse_unsafely( struct parserc *self, char *htmlin ) {
           goto u_att_space;
         case '>':
           curatt = nodec_addattr( curnode, attname, attname_len );
-          if( !att_has_val ) { curatt->value = -1; curatt->vallen = 0; }
+          if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len = 0;
           cpos++;
           goto u_val_1;

@@ -19,7 +19,7 @@ U32 content_hash;
 char *rootpos;
 
 //#define DEBUG
-  
+
 SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
   HV *output = newHV(); // the root
   SV *outputref = newRV_noinc( (SV *) output ); // return a reference to the root
@@ -29,18 +29,18 @@ SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
   SV *attval;
   SV *attatt;
   int cur_type;
-      
+
   int length = curnode->numchildren;
   SV *svi = newSViv( curnode->pos );
-  
+
   hv_store( output, "_pos", 4, svi, phash );
   hv_store( output, "_i", 2, newSViv( curnode->name - rootpos ), ihash );
   hv_store( output, "_z", 2, newSViv( curnode->z ), zhash );
-  
+
   #ifdef DEBUG
   printf("Node: %.*s\n", curnode->namelen, curnode->name );
   #endif
-  
+
   // node without children
   if( !length ) {
     if( curnode->vallen ) {
@@ -58,7 +58,7 @@ SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
       hv_store( output, "comment", 7, sv, chash );
     }
   }
-  
+
   // node with children
   else {
     if( curnode->vallen ) {
@@ -75,12 +75,12 @@ SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
       SvUTF8_on(sv);
       hv_store( output, "comment", 7, sv, chash );
     }
-    
+
     // loop through child nodes
     curnode = curnode->firstchild;
     for( i = 0; i < length; i++ ) {
       SV **cur = hv_fetch( output, curnode->name, curnode->namelen, 0 );
-      
+
       // check for multi_[name] nodes
       if( curnode->namelen > 6 ) {
         if( !strncmp( curnode->name, "multi_", 6 ) ) {
@@ -102,7 +102,7 @@ SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
           }
         }
       }
-      
+
       if( !cur ) {
         SV *ob = chtml2obj( parser, curnode );
         hv_store( output, curnode->name, curnode->namelen, ob, 0 );
@@ -133,18 +133,18 @@ SV *chtml2obj( struct parserc *parser, struct nodec *curnode ) {
       }
       if( i != ( length - 1 ) ) curnode = curnode->next;
     }
-    
+
     curnode = curnode->parent;
   }
-  
+
   if( numatts ) {
     curatt = curnode->firstatt;
     for( i = 0; i < numatts; i++ ) {
       HV *atth = newHV();
       SV *atthref = newRV_noinc( (SV *) atth );
       hv_store( output, curatt->name, curatt->namelen, atthref, 0 );
-      
-      if( curatt->value == -1 ) attval = newSVpvn( "1", 1 );
+
+      if( curatt->value == (char *)-1 ) attval = newSVpvn( "1", 1 );
       else attval = newSVpvn( curatt->value, curatt->vallen );
       SvUTF8_on(attval);
       hv_store( atth, "value", 5, attval, vhash );
@@ -164,7 +164,7 @@ SV *chtml2obj_simple( struct parserc *parser, struct nodec *curnode ) {
   SV *attatt;
   HV *output;
   SV *outputref;
-  
+
   int length = curnode->numchildren;
   if( ( length + numatts ) == 0 ) {
     if( curnode->vallen ) {
@@ -174,18 +174,18 @@ SV *chtml2obj_simple( struct parserc *parser, struct nodec *curnode ) {
     }
     return newSVpvn( "", 0 );
   }
-  
+
   output = newHV();
   outputref = newRV_noinc( (SV *) output );
-  
+
   if( length ) {
     curnode = curnode->firstchild;
     for( i = 0; i < length; i++ ) {
       SV *namesv = newSVpvn( curnode->name, curnode->namelen );
       SvUTF8_on(namesv);
-      
+
       SV **cur = hv_fetch( output, curnode->name, curnode->namelen, 0 );
-      
+
       if( curnode->namelen > 6 ) {
         if( !strncmp( curnode->name, "multi_", 6 ) ) {
           char *subname = &curnode->name[6];
@@ -206,7 +206,7 @@ SV *chtml2obj_simple( struct parserc *parser, struct nodec *curnode ) {
           }
         }
       }
-        
+
       if( !cur ) {
         SV *ob = chtml2obj_simple( parser, curnode );
         hv_store( output, curnode->name, curnode->namelen, ob, 0 );
@@ -230,12 +230,12 @@ SV *chtml2obj_simple( struct parserc *parser, struct nodec *curnode ) {
         else {
           AV *newarray = newAV();
           SV *newarrayref = newRV( (SV *) newarray );
-          
+
           STRLEN len;
           char *ptr = SvPV(*cur, len);
           SV *newsv = newSVpvn( ptr, len );
           SvUTF8_on(newsv);
-          
+
           av_push( newarray, newsv );
           hv_delete( output, curnode->name, curnode->namelen, 0 );
           hv_store( output, curnode->name, curnode->namelen, newarrayref, 0 );
@@ -268,18 +268,18 @@ SV *chtml2obj_simple( struct parserc *parser, struct nodec *curnode ) {
       }
     }
   }
-  
+
   if( numatts ) {
     curatt = curnode->firstatt;
     for( i = 0; i < numatts; i++ ) {
-      if( curatt->value == -1 ) attval = newSVpvn( "1", 1 );
+      if( curatt->value == (char *)-1 ) attval = newSVpvn( "1", 1 );
       else attval = newSVpvn( curatt->value, curatt->vallen );
       SvUTF8_on(attval);
       hv_store( output, curatt->name, curatt->namelen, attval, 0 );
       if( i != ( numatts - 1 ) ) curatt = curatt->next;
     }
   }
-  
+
   return outputref;
 }
 
@@ -308,7 +308,7 @@ html2obj( parsersv )
     }
   OUTPUT:
     RETVAL
-    
+
 SV *
 html2obj_simple( parsersv )
   SV *parsersv
@@ -340,7 +340,7 @@ c_parse(text)
   char * text
   CODE:
     init_hashes();
-    
+
     struct parserc *parser = (struct parserc *) malloc( sizeof( struct parserc ) );
     parser->last_state = 0;
     int err = parserc_parse( parser, text );
@@ -353,7 +353,7 @@ c_parse_unsafely(text)
   char * text
   CODE:
     init_hashes();
-    
+
     struct parserc *parser = (struct parserc *) malloc( sizeof( struct parserc ) );
     parser->last_state = 0;
     int err = parserc_parse_unsafely( parser, text );
@@ -368,15 +368,15 @@ c_parsefile(filename)
     char *data;
     unsigned long len;
     FILE *handle;
-    
+
     init_hashes();
-    
+
     handle = fopen(filename,"r");
-    
+
     fseek( handle, 0, SEEK_END );
-    
+
     len = ftell( handle );
-    
+
     fseek( handle, 0, SEEK_SET );
     data = (char *) malloc( len );
     rootpos = data;
