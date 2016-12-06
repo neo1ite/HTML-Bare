@@ -12,12 +12,12 @@ my $doc = $parser->parse_file( $file );
 
 #-
 require XML::Parser;
-my $parser = new XML::Parser();
+my $parser = XML::Parser->new();
 my $doc = $parser->parsefile( $file );
 
 #-
 require XML::Parser::Expat;
-my $parser = new XML::Parser::Expat();
+my $parser = XML::Parser::Expat->new();
 sub noop{}
 $parser->setHandlers('Start' => \&noop, 'End' => \&noop, 'Char' => \&noop);
 open(FOO, $file) or die "Couldn't open $!";
@@ -35,5 +35,5 @@ $p->walk;
 
 #-
 require XML::DOM;
-my $parser = new XML::DOM::Parser;
+my $parser = XML::DOM::Parser->new;
 my $doc = $parser->parsefile( $file );

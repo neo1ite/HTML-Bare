@@ -3,12 +3,12 @@ Native Perl Tree Parsers
 
 #0
 require XML::Bare;
-my $ob = new XML::Bare( file => $file, unsafe => 1 );
+my $ob = XML::Bare->new( file => $file, unsafe => 1 );
 $root = $ob->simple();
 
 #- XML::Bare (simple)
 require XML::Bare;
-my $ob = new XML::Bare( file => $file );
+my $ob = XML::Bare->new( file => $file );
 my $root = $ob->simple();
 
 #- XML::Fast
@@ -27,15 +27,15 @@ my $tree = $tpp->parsefile( $file );
 #- XML::Parser::EasyTree
 require XML::Parser;
 require XML::Parser::EasyTree;
-my $p1 = new XML::Parser(Style=>'EasyTree');
+my $p1 = XML::Parser->new(Style=>'EasyTree');
 $root = $p1->parsefile($file);
 
 #-
 require XML::Handler::Trees;
 require XML::Parser::PerlSAX;
-my $p=XML::Parser::PerlSAX->new();
-my $h=XML::Handler::EasyTree->new();
-$root=$p->parse(Handler=>$h,Source=>{SystemId=>$file});
+my $p = XML::Parser::PerlSAX->new();
+my $h = XML::Handler::EasyTree->new();
+$root = $p->parse(Handler=>$h,Source=>{SystemId=>$file});
 
 #-
 require XML::Trivial;
@@ -82,8 +82,8 @@ $root = $t->root->simplify;
 require XML::Grove::Builder;
 require XML::Parser::PerlSAX;
 my $grove_builder = XML::Grove::Builder->new;
-my $parser = XML::Parser::PerlSAX->new ( Handler => $grove_builder );
-my $document = $parser->parse ( Source => { SystemId => $file } );
+my $parser = XML::Parser::PerlSAX->new( Handler => $grove_builder );
+my $document = $parser->parse( Source => { SystemId => $file } );
 
 #- XML::XPath::XMLParser
 require XML::XPath::XMLParser;
