@@ -10,12 +10,13 @@ use lib 'lib';
 #use utf8;
 
 use Test::Harness;
-$Test::Harness::verbose=1;
+$Test::Harness::verbose = 1;
 use Test::More qw(no_plan);
 
 
 use_ok('HTML::Bare');
 
+my $test_file = 't/test_utf8.xml';
 my $data = {
     hash   => "#",
     oo     => "\x{f6}",
@@ -35,7 +36,7 @@ foreach ( keys %{$data} ) {
 $xmldata .= "</data>\n";
 
 # parse the provided XML
-my $obj = new HTML::Bare( text => $xmldata, file => 't/test_utf8.xml' );
+my $obj = HTML::Bare->new(text => $xmldata, file => $test_file);
 my $root = $obj->parse;
 
 # convert back to XML from parse
@@ -43,22 +44,24 @@ use Data::Dumper;
 my $roundtrip = $obj->html($root);
 
 ## this isn't valid as order/spacing not preserved
-is( $roundtrip, $xmldata, 'Round trip XML identical' );
+is($roundtrip, $xmldata, 'Round trip XML identical');
 
 while ( my ( $name, $char ) = each %{$data} ) {
     my $str = $root->{data}{$name}{value};
-    ok( utf8::is_utf8($str), "Character $name is correct encoding" )
-      if ( utf8::is_utf8($char) );
-    ok( utf8::valid($str), "Character $name is Valid" );
-    ok( ( length($str) == 1 ), "String returned for $name is 1 char long" );
 
-    is( $str, $char, "Character $name OK" );
+    ok(utf8::is_utf8($str), "Character $name is correct encoding")       if utf8::is_utf8($char);
+    ok(utf8::valid($str),   "Character $name is Valid");
+    ok((length($str) == 1), "String returned for $name is 1 char long");
+
+    is($str, $char,         "Character $name OK");
 }
 
 # save it to a file
 $obj->save();
 
-my ( $ob2, $root2 ) = HTML::Bare->new( file => 't/test_utf8.xml' );
+my ( $ob2, $root2 ) = HTML::Bare->new(file => $test_file);
 my $round2 = $obj->html( $root2 );
 
-is( $roundtrip, $xmldata, 'Written file reads back in the same' );
+is($round2, $xmldata, 'Written file reads back in the same');
+
+unlink($test_file);

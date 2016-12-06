@@ -5,12 +5,12 @@ use warnings qw(FATAL all);
 use lib 'lib';
 use Test::More qw(no_plan);
 
-use_ok( 'HTML::Bare', qw/htmlin/ );
+use_ok('HTML::Bare', qw/htmlin/);
 
-my ( $ob, $root ) = HTML::Bare->simple( text => "<node att='2'><![CDATA[cdata contents]]></node>" );
+my ($ob, $root) = HTML::Bare->simple(text => "<node att='2'><![CDATA[cdata contents]]></node>");
 
-ok( $root, "Got some root" );
+ok($root, "Got some root");
 my $attval = $root->{'node'}{'att'};
-is( $attval, '2', "Got the right attribute value" );
+is($attval, '2', "Got the right attribute value");
 my $cdataval = $root->{'node'}{'content'};
-is( $cdataval, 'cdata contents', "Got the right cdata value" );
+is($cdataval, 'cdata contents', "Got the right cdata value");

@@ -30,7 +30,7 @@ foreach ( keys %{$data} ) {
 $xmldata .= "</data>\n";
 
 # parse the provided XML
-my $obj = new HTML::Bare( text => $xmldata );
+my $obj = HTML::Bare->new(text => $xmldata);
 my $root = $obj->parse;
 
 # convert back to XML from parse
@@ -41,11 +41,10 @@ is( $roundtrip, $xmldata, 'Round trip XML identical' );
 
 while ( my ( $name, $char ) = each %{$data} ) {
     my $str = $root->{data}{$name}{char}{value};
-    ok( $root->{data}{$name}{char}{_att}, "$name has char attribute" );
-    ok( utf8::is_utf8($str), "Character $name is correct encoding" )
-      if ( utf8::is_utf8($char) );
-    ok( utf8::valid($str), "Character $name is Valid" );
-    ok( ( length($str) == 1 ), "String returned for $name is 1 char long" );
+    ok($root->{data}{$name}{char}{_att}, "$name has char attribute");
+    ok(utf8::is_utf8($str),              "Character $name is correct encoding")         if ( utf8::is_utf8($char) );
+    ok(utf8::valid($str),                "Character $name is Valid");
+    ok((length($str) == 1),              "String returned for $name is 1 char long");
 
-    is( $str, $char, "Character $name OK" );
+    is($str, $char,                      "Character $name OK");
 }
