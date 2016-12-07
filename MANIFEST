@@ -20,6 +20,7 @@ bench/test.xml
 bench/large.xml
 bench/license.txt
 t/Basic.t
+t/Scripts.t
 t/Pod_Coverage.t
 t/Pod.t
 t/UTF8_Values.t
@@ -28,6 +29,7 @@ t/test.xml
 t/Bug_node_named_value.t
 t/Bug_simple_empty_is_one.t
 t/Bug_simple_with_cdata.t
+t/Bug_script_comments.t
 t/Func_find_by_perl.t
 t/Func_find_node.t
 t/Multithreading.t

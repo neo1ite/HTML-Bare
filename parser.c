@@ -6,24 +6,26 @@
 #ifdef NOSTRING
   void memset(char *s, int c, int n) {
     char *se = s + n;
-    while(s < se)	*s++ = c;
-	}
+    while(s < se) *s++ = c;
+  }
 #else
   #include <string.h>
 #endif
 
-int dh_memcmp(char *a,char *b,int n) {
+int dh_memcmp(char *a, char *b, int n) {
   int c = 0;
+
   while( c < n ) {
-    if( *a != *b ) return c+1;
+    if( *a != *b ) return c + 1;
     a++; b++; c++;
   }
+
   return 0;
 }
 
-int dh_memcmp2(char *a,int na,char *b,int nb) {
+int dh_memcmp2(char *a, int na, char *b, int nb) {
   int c = 0;
-  if (na != nb) return 0;
+  if (na != nb) return -1;
 
   while (c < na) {
     if( *a != *b ) return c + 1;
@@ -35,11 +37,14 @@ int dh_memcmp2(char *a,int na,char *b,int nb) {
 
 struct nodec *new_nodecp( struct nodec *newparent ) {
   static int pos = 0;
+
   int size = sizeof( struct nodec );
   struct nodec *self = (struct nodec *) malloc( size );
+
   memset( (char *) self, 0, size );
-  self->parent      = newparent;
-  self->pos = ++pos;
+
+  self->parent = newparent;
+  self->pos    = ++pos;
 
   return self;
 }
@@ -47,6 +52,7 @@ struct nodec *new_nodecp( struct nodec *newparent ) {
 struct nodec *new_nodec() {
   int size = sizeof( struct nodec );
   struct nodec *self = (struct nodec *) malloc( size );
+
   memset( (char *) self, 0, size );
 
   return self;
@@ -104,8 +110,11 @@ void del_nodec( struct nodec *node ) {
 struct attc* new_attc( struct nodec *newparent ) {
   int size = sizeof( struct attc );
   struct attc *self = (struct attc *) malloc( size );
+
   memset( (char *) self, 0, size );
-  self->parent  = newparent;
+
+  self->parent = newparent;
+
   return self;
 }
 
@@ -137,6 +146,7 @@ struct attc* new_attc( struct nodec *newparent ) {
 #define ST_ename_x 23
 
 int parserc_parse( struct parserc *self, char *htmlin ) {
+
     // Variables that represent current 'state'
     struct nodec *root    = NULL;
     char  *tagname        = NULL; int tagname_len = 0;
@@ -147,6 +157,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
     struct attc  *curatt  = NULL;
     int    last_state     = 0;
     self->rootpos = htmlin;
+
     // HTML stuff
     struct namec *curname = new_namec( NULL, "", 0 );
 
@@ -155,12 +166,16 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
     char   *cpos          = &htmlin[0];
     int    res            = 0;
     int    dent;
+    char   *script_tag    = "script";
+    int    script_taglen  = strlen(script_tag);
+    unsigned short script_tag_flag = 0;
     register int let;
 
     if (self->last_state) {
       #ifdef DEBUG
       printf( "Resuming parse in state %i\n", self->last_state );
       #endif
+
       self->err = 0;
 
       root        = self->rootnode;
@@ -171,7 +186,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       attval      = self->attval;  attval_len  = self->attval_len;
       att_has_val = self->att_has_val;
 
-      switch( self->last_state ) {
+      switch (self->last_state) {
         case ST_val_1:          goto val_1;
         case ST_val_x:          goto val_x;
         case ST_comment_1dash:  goto comment_1dash;
@@ -210,6 +225,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       #ifdef DEBUG
       printf("val_1: %c %d\n", *cpos, *cpos);
       #endif
+
       let = *cpos;
 
       switch( let ) {
@@ -218,7 +234,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       }
 
       if( !curnode->numvals ) {
-        curnode->value = cpos;
+        curnode->value  = cpos;
         curnode->vallen = 1;
       }
 
@@ -232,129 +248,164 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
 
       let = *cpos;
 
-      switch( let ) {
+      switch (let) {
         case 0: last_state = ST_val_x; goto done;
         case '<':
-          switch( *(cpos+1) ) {
+          switch (*(cpos+1)) {
             case '!':
-              if( *(cpos+2) == '[' ) { // <![
+              if (*(cpos+2) == '[') { // <![
                 //if( !strncmp( cpos+3, "CDATA", 5 ) ) {
-                if( *(cpos+3) == 'C' &&
+                if (*(cpos+3) == 'C' &&
                     *(cpos+4) == 'D' &&
                     *(cpos+5) == 'A' &&
                     *(cpos+6) == 'T' &&
-                    *(cpos+7) == 'A'    ) {
+                    *(cpos+7) == 'A')
+                {
                   cpos += 9;
                   curnode->type = 1;
+
                   goto cdata;
-                }
-                else {
+                } else {
                   cpos++; cpos++;
-                  goto val_x;//actually goto error...
+
+                  goto val_x; //actually goto error...
                 }
-              }
-              else if( *(cpos+2) == '-' && // <!--
-                *(cpos+3) == '-' ) {
-                  cpos += 4;
-                  goto comment;
-              }
-              else {
+              } else if (*(cpos+2) == '-' && // <!--
+                         *(cpos+3) == '-')
+              {
+                cpos += 4;
+
+                goto comment;
+              } else {
                 cpos++;
+
                 goto bang;
               }
             case '?':
               cpos+=2;
+
               goto pi;
           }
           tagname_len = 0; // for safety
           cpos++;
+
           goto name_1;
       }
-      if( curnode->numvals == 1 ) curnode->vallen++;
+
+      if (curnode->numvals == 1) curnode->vallen++;
       cpos++;
+
       goto val_x;
 
     comment_1dash:
       cpos++;
       let = *cpos;
+
       if( let == '-' ) goto comment_2dash;
       if( !let ) { last_state = ST_comment_1dash; goto done; }
+
       goto comment_x;
 
     comment_2dash:
       cpos++;
       let = *cpos;
+
       if( let == '>' ) {
         cpos++;
         goto val_1;
       }
       if( !let ) { last_state = ST_comment_2dash; goto done; }
+
       goto comment_x;
 
     comment:
       let = *cpos;
+
       switch( let ) {
         case 0:   last_state = ST_comment; goto done;
         case '-': goto comment_1dash;
       }
+
       if( !curnode->numcoms ) {
         curnode->comment = cpos;
         curnode->comlen = 1;
       }
+
       curnode->numcoms++;
       cpos++;
 
     comment_x:
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_comment_x; goto done;
         case '-': goto comment_1dash;
       }
-      if( curnode->numcoms == 1 ) curnode->comlen++;
+
+      if (curnode->numcoms == 1) curnode->comlen++;
       cpos++;
+
       goto comment_x;
 
     pi:
       let = *cpos;
-      if( let == '?' && *(cpos+1) == '>' ) {
+      if (let == '?' && *(cpos+1) == '>') {
         cpos += 2;
         goto val_1;
       }
-      if( !let ) { last_state = ST_pi; goto done; }
+
+      if (!let) { last_state = ST_pi; goto done; }
       cpos++;
+
       goto pi;
 
     bang:
       let = *cpos;
-      if( let == '>' ) {
+
+      if (let == '>') {
         cpos++;
         goto val_1;
       }
-      if( !let ) { last_state = ST_bang; goto done; }
+
+      if (!let) { last_state = ST_bang; goto done; }
       cpos++;
+
       goto bang;
 
     cdata:
       let = *cpos;
-      if( !let ) { last_state = ST_cdata; goto done; }
-      if( let == ']' && *(cpos+1) == ']' && *(cpos+2) == '>' ) {
+
+      if (!let) { last_state = ST_cdata; goto done; }
+
+      if (let == ']' && *(cpos+1) == ']' && *(cpos+2) == '>') {
         cpos += 3;
         goto val_1;
       }
+
       if( !curnode->numvals ) {
         curnode->value = cpos;
         curnode->vallen = 0;
         curnode->numvals = 1;
       }
+
       if( curnode->numvals == 1 ) curnode->vallen++;
       cpos++;
+
       goto cdata;
 
     name_1:
       #ifdef DEBUG
       printf("name_1: %c\n", *cpos);
       #endif
+
       let = *cpos;
+
+      if (script_tag_flag && let != '/') {
+        if (curnode->numvals == 1) curnode->vallen++;
+
+        goto val_x;
+      }
+
       switch( let ) {
         case 0: last_state = ST_name_1; goto done;
         case ' ':
@@ -366,68 +417,102 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           tagname_len = 0; // needed to reset
           cpos++;
           goto ename_1;
+        case '(':
+          goto error;
       }
+
       tagname       = cpos;
       tagname_len   = 1;
       cpos++;
+
       goto name_x;
 
     name_x:
       #ifdef DEBUG
       printf("name_x: %c\n", *cpos);
       #endif
+
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_name_x; goto done;
         case ' ':
         case 0x0d:
         case 0x0a:
+          #ifdef DEBUG
+          printf("opened tag: %.*s\n", tagname_len, tagname);
+          #endif
+
           curnode     = nodec_addchildr( curnode, tagname, tagname_len );
           curname     = new_namec( curname, curnode->name, curnode->namelen );
           attname_len = 0;
+
+          if (!dh_memcmp2(curname->name, curname->namelen, script_tag, script_taglen)) script_tag_flag = 1;
+
           cpos++;
+
           goto name_gap;
         case '>':
+          #ifdef DEBUG
+          printf("opened tag: %.*s\n", tagname_len, tagname);
+          #endif
+
           curnode     = nodec_addchildr( curnode, tagname, tagname_len );
           curname     = new_namec( curname, curnode->name, curnode->namelen );
+
+          if (!dh_memcmp2(curname->name, curname->namelen, script_tag, script_taglen)) script_tag_flag = 1;
+
           cpos++;
+
           goto val_1;
         case '/': // self closing
-          temp = nodec_addchildr( curnode, tagname, tagname_len );
-          temp->z = cpos +1 - htmlin;
-          tagname_len            = 0;
-          cpos+=2;
+          temp        = nodec_addchildr( curnode, tagname, tagname_len );
+          temp->z     = cpos + 1 - htmlin;
+          tagname_len = 0;
+
+          cpos += 2;
+
           goto val_1;
       }
 
       tagname_len++;
       cpos++;
+
       goto name_x;
 
     name_gap:
       #ifdef DEBUG
       printf("name_gap: %c\n", *cpos);
       #endif
+
       let = *cpos;
+
       switch( *cpos ) {
         case 0: last_state = ST_name_gap; goto done;
         case ' ':
         case 0x0d:
         case 0x0a:
           cpos++;
+
           goto name_gap;
         case '>':
           cpos++;
+
           goto val_1;
         case '/': // self closing
-          curnode->z = cpos+1-htmlin;
+          if (script_tag_flag) script_tag_flag = 0;
+
+          curnode->z = cpos + 1 - htmlin;
           curname = del_namec( curname );
           curnode = curnode->parent;
+
           if( !curnode ) goto done;
-          cpos+=2; // am assuming next char is >
+          cpos += 2; // am assuming next char is >
+
           goto val_1;
         case '=':
           cpos++;
+
           goto name_gap;//actually goto error
       }
 
@@ -435,23 +520,29 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       #ifdef DEBUG
       printf("attname1: %c\n", *cpos);
       #endif
+
       att_has_val = 0;
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_att_name1; goto done;
         case 0x27://'
           cpos++;
-          attname = cpos;
+          attname     = cpos;
           attname_len = 0;
+
           goto att_nameqs;
       }
-      attname = cpos;
+
+      attname     = cpos;
       attname_len = 1;
       cpos++;
+
       goto att_name;
 
     att_space:
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_att_space; goto done;
         case ' ':
@@ -470,61 +561,80 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
       #ifdef DEBUG
       printf("attname: %c\n", *cpos);
       #endif
+
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_att_name; goto done;
         case '/': // self closing     !! /> is assumed !!
           curatt = nodec_addattr( curnode, attname, attname_len );
+
           if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len            = 0;
+          if (script_tag_flag) script_tag_flag = 0;
 
           curnode->z = cpos + 1 - htmlin;
           curname = del_namec( curname );
           curnode = curnode->parent;
+
           if( !curnode ) goto done;
           cpos += 2;
+
           goto val_1;
         case ' ':
           if( *(cpos+1) == '=' ) {
             cpos++;
             goto att_name;
           }
+
           curatt = nodec_addattr( curnode, attname, attname_len );
           attname_len = 0;
           cpos++;
+
           goto att_space;
         case '>':
           curatt = nodec_addattr( curnode, attname, attname_len );
+
           if( !att_has_val ) { curatt->value = (char *)-1; curatt->vallen = 0; }
           attname_len = 0;
           cpos++;
+
           goto val_1;
         case '=':
           attval_len = 0;
+
           curatt = nodec_addattr( curnode, attname, attname_len );
           attname_len = 0;
           cpos++;
+
           goto att_eq1;
       }
 
       if( !attname_len ) attname = cpos;
+
       attname_len++;
       cpos++;
+
       goto att_name;
 
     att_nameqs:
       #ifdef DEBUG
       printf("att_nameqs: %c\n", *cpos);
       #endif
+
       let = *cpos;
+
       switch( let ) {
         case 0: last_state = ST_att_nameqs; goto done;
         case 0x27://'
           cpos++;
+
           goto att_nameqsdone;
       }
+
       attname_len++;
       cpos++;
+
       goto att_nameqs;
 
     att_nameqsdone:
@@ -669,17 +779,21 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
 
     ename_1: // first character of a closing node "</Close>" ( the C )
       let = *cpos;
-      if( let == '>' ) {
+
+      if (let == '>') {
         curnode->namelen = tagname_len;
-        curnode->z = cpos-htmlin;
+        curnode->z = cpos - htmlin;
         curnode = curnode->parent; // jump up
         if( !curnode ) goto done;
+
         tagname_len++;
         cpos++;
         root->err = -1;
+
         goto error;
       }
-      if( !let ) { last_state = ST_ename_1; goto done; }
+
+      if (!let) { last_state = ST_ename_1; goto done; }
       tagname       = cpos;
       tagname_len   = 1;
       cpos++;
@@ -687,22 +801,31 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
 
     ename_x: // ending name
       let = *cpos;
+
       if( let == '>' ) {
         //if( curnode->namelen != tagname_len ) {
         //  goto error;
         //}
-        while( curname ) {
+        while (curname) {
             #ifdef DEBUG
             printf("Comparing: curname->name=%.*s to %.*s\n", curname->namelen, curname->name, tagname_len, tagname );
             #endif
-            int res = dh_memcmp2( curname->name, curname->namelen, tagname, tagname_len );
-            if( res ) { // ending tag does not match tag
+
+            int res = dh_memcmp2(curname->name, curname->namelen, tagname, tagname_len);
+            if (res) { // ending tag does not match tag
                 #ifdef DEBUG
                 printf("Closing node not equal: curname->name=%.*s - opening tag=%.*s\n", tagname_len, curname->name, tagname_len, tagname );
                 #endif
-                curname = del_namec( curname );
-                curnode = curnode->parent; // jump up
-                if( !curnode ) goto done;
+
+                if (!dh_memcmp2(curname->name, curname->namelen, script_tag, script_taglen)) {
+                  if (curnode->numvals == 1) curnode->vallen += tagname_len + 2;
+
+                  goto val_x;
+                } else {
+                  curname = del_namec( curname );
+                  curnode = curnode->parent; // jump up
+                  if (!curnode) goto done;
+                }
             }
             else break;
         }
@@ -714,18 +837,23 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos += res - 1;
           goto error;
         }*/
-        curnode->z = cpos-htmlin;
+        if (!dh_memcmp2(curname->name, curname->namelen, script_tag, script_taglen)) script_tag_flag = 0;
+
+        curnode->z = cpos - htmlin;
         curnode = curnode->parent; // jump up
         curname = del_namec( curname );
-        if( !curnode ) goto done;
+        if (!curnode) goto done;
+
         tagname_len++;
         cpos++;
 
         goto val_1;
       }
+
       if( !let ) { last_state = ST_ename_x; goto done; }
       tagname_len++;
       cpos++;
+
       goto ename_x;
     error:
       self->err = - ( int ) ( cpos - &htmlin[0] );
